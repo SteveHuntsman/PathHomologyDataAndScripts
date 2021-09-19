@@ -8,6 +8,6 @@ Data:
   - email-Eu-core-temporal.txt
   - out.facebook-wosn-wall.txt
 
-Scripts: all M-files. Scripts ending in "1" are for the aggregated representations; the script apnsMLPrepresentations.m is for the MLP/layered representation; and the scripts ending in "TD" are for the temporal digraph representations.
+Scripts: all M-files except for temporaldigraph.m (for which see below). Scripts ending in "1" are for the aggregated representations; the script apnsMLPrepresentations.m is for the MLP/layered representation; and the scripts ending in "TD" are for the temporal digraph representations.
 
 Code: temporaldigraph.m produces a temporal digraph from a DCN. Lower-level/faster approaches are possible, but this exploits MATLAB's digraph functions. For path homology MATLAB code called by these scripts, see https://github.com/SteveHuntsmanBAESystems/PerformantPathHomology
