@@ -1,5 +1,5 @@
 # PathHomologyDataAndScripts
-For Chowdhury, Huntsman, and Yutin: "Path homologies of motifs and temporal network representations." Cf. https://arxiv.org/abs/2008.11885 
+For Chowdhury, Huntsman, and Yutin: "Path homologies of motifs and temporal network representations." Cf. https://arxiv.org/abs/2008.11885. We include data, scripts, and a bit of code. The data are in "DCN format," with absolute timestamps. References for data are in either paper mentioned above: we supply the data here for the sake of (relative) permanence and convenience.
 
 The scripts are not polished, but merely intended to make the paper's results reproducible with a little bit of (versus either zero or extensive) effort. To run scripts, save the data files to an appropriate location and edit the directories in the scripts. For apnsMLPrepresentations.m, run interactively one code cell at a time for the appropriate data set, editing any filenames/locations as needed. 
 
