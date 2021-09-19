@@ -4,9 +4,9 @@ For Chowdhury, Huntsman, and Yutin: "Path homologies of motifs and temporal netw
 The scripts are not polished, but merely intended to make the paper's results reproducible with a modicum of (versus zero) effort. To run scripts, save the data files to an appropriate location and edit the directories in the scripts. For apnsMLPrepresentations.m, run interactively one code cell at a time for the appropriate data set, editing any filenames/locations as needed. 
 
 Data:
-    - sx-mathoverflow-a2q.txt
-    - email-Eu-core-temporal.txt
-    - out.facebook-wosn-wall.txt
+  - sx-mathoverflow-a2q.txt
+  - email-Eu-core-temporal.txt
+  - out.facebook-wosn-wall.txt
 
 Scripts: all M-files. Scripts ending in "1" are for the aggregated representations; the script apnsMLPrepresentations.m is for the MLP/layered representation; and the scripts ending in "TD" are for the temporal digraph representations.
 
