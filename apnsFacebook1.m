@@ -31,6 +31,8 @@ time0 = datetime(temp(1:3));
 dt = 1;%8/24;
 n_dt = 1600/dt; %
 betti = zeros(n_dt,3);
+clustCoeff = zeros(n_dt,1);
+edgeDensity = zeros(n_dt,1);
 %
 for j = 1:1000%1:n_dt
    [j,n_dt]
@@ -45,6 +47,11 @@ for j = 1:1000%1:n_dt
    if size(D.Nodes,1)
        ph = pathhomology(D,size(betti,2));
        betti(j,:) = ph.betti;
+       %
+       foo = localClustCoeff(adjacency(D));
+       foo(isnan(foo)) = 0;
+       clustCoeff(j) = mean(foo);
+       edgeDensity(j) = numedges(D)/(numnodes(D)*(numnodes(D)-1));
    end
    %%
 end
@@ -107,7 +114,7 @@ axis off;
 % % Save figure to same directory
 % timestr = datestr(datetime,'yyyymmdd_HHMM');
 % filename = ['Facebook',timestr];
-% print('-dpdf',[fileDir,filename,'.eps'],'-r600');
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
 % print('-dpng',[fileDir,filename,'.png'],'-r600');
 % Produce and save figure of all components 
 figure; 
@@ -116,7 +123,7 @@ axis off;
 hold on;
 p = patch([0,5,5,0],[0,0,6,6],'k'); set(p,'FaceAlpha',0);
 % filename = ['FacebookContext',timestr];
-% print('-dpdf',[fileDir,filename,'.eps'],'-r600');
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
 % print('-dpng',[fileDir,filename,'.png'],'-r600');
 
 %% Plot Betti numbers and posts per day
@@ -135,7 +142,7 @@ xlabel('days since beginning','Interpreter','latex');
 box on;
 ax = axis;
 % filename = ['FacebookBetti',timestr];
-% print('-dpdf',[fileDir,filename,'.eps'],'-r600');
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
 % print('-dpng',[fileDir,filename,'.png'],'-r600');
 
 %% Posts per day
@@ -154,5 +161,30 @@ legend({'Posts per day'},...
 axis(ax);
 box on;
 % filename = ['FacebookActivity',timestr];
-% print('-dpdf',[fileDir,filename,'.eps'],'-r600');
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
+% print('-dpng',[fileDir,filename,'.png'],'-r600');
+
+%%
+figure('Position',[0,0,560,210]);
+ind = 1:1000;
+subplot(1,2,1);
+plot(betti(ind,3),clustCoeff(ind),'k.','MarkerSize',10);
+xlabel('$\tilde \beta_2$','Interpreter','latex');
+ylabel('clustering coefficient','Interpreter','latex');
+title('Facebook windowed digraphs','Interpreter','latex');
+rho = corrcoef(betti(ind,3),clustCoeff(ind));
+legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+    'Interpreter','latex','Location','Northeast');
+subplot(1,2,2);
+plot(betti(:,3),edgeDensity,'k.','MarkerSize',10);
+xlabel('$\tilde \beta_2$','Interpreter','latex');
+ylabel('edge density','Interpreter','latex');
+title('Facebook windowed digraphs','Interpreter','latex');
+rho = corrcoef(betti(:,3),edgeDensity);
+legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+    'Interpreter','latex','Location','Northeast');
+% % Save figure to same directory
+% timestr = datestr(datetime,'yyyymmdd_HHMM');
+% filename = ['FacebookBettiVs',timestr];
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
 % print('-dpng',[fileDir,filename,'.png'],'-r600');

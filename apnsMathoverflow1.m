@@ -25,6 +25,8 @@ time0 = datetime(temp(1:3));
 dt = 8/24;
 n_dt = 2351/dt; % 2351 days
 betti = zeros(n_dt,3);
+clustCoeff = zeros(n_dt,1);
+edgeDensity = zeros(n_dt,1);
 %
 for j = 1:n_dt
    % [j,n_dt]
@@ -38,6 +40,11 @@ for j = 1:n_dt
    if size(D.Nodes,1)
        ph = pathhomology(D,size(betti,2));
        betti(j,:) = ph.betti;
+       %
+       foo = localClustCoeff(adjacency(D));
+       foo(isnan(foo)) = 0;
+       clustCoeff(j) = mean(foo);
+       edgeDensity(j) = numedges(D)/(numnodes(D)*(numnodes(D)-1));
    end
    %%
 end
@@ -74,5 +81,21 @@ axis off;
 % % Save figure to same directory
 % timestr = datestr(datetime,'yyyymmdd_HHMM');
 % filename = ['MathOverflow',timestr];
-% print('-dpdf',[fileDir,filename,'.eps'],'-r600');
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
+% print('-dpng',[fileDir,filename,'.png'],'-r600');
+
+%%
+figure('Position',[0,0,560,210]);
+plot(edgeDensity(hasB2),clustCoeff(hasB2),'ko',...
+    edgeDensity,clustCoeff,'k.');
+xlabel('clustering coefficient','Interpreter','latex');
+ylabel('edge density','Interpreter','latex');
+title('MathOverflow windowed digraphs','Interpreter','latex');
+rho = corrcoef(betti(:,3),edgeDensity);
+legend({'$\tilde \beta_2 > 0$'},...
+    'Interpreter','latex','Location','Northeast');
+% % Save figure to same directory
+% timestr = datestr(datetime,'yyyymmdd_HHMM');
+% filename = ['MathOverflowBettiVs',timestr];
+% print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
 % print('-dpng',[fileDir,filename,'.png'],'-r600');

@@ -1,8 +1,8 @@
 %% NB. Various code cells need to be re-run with various filenames
-filename = '/Users/sha0639/Downloads/sx-mathoverflow-a2q.txt';      % http://snap.stanford.edu/data/sx-mathoverflow.html
+% filename = '/Users/sha0639/Downloads/sx-mathoverflow-a2q.txt';      % http://snap.stanford.edu/data/sx-mathoverflow.html
 % filename = '/Users/sha0639/Downloads/email-Eu-core-temporal.txt';   % http://snap.stanford.edu/data/email-Eu-core-temporal.html
 % % % filename = '/Users/sha0639/Downloads/facebook-wall.txt';            % http://socialnetworks.mpi-sws.org/data-wosn2009.html      
-% filename = '/Users/sha0639/Downloads/out.facebook-wosn-wall.txt';   % Konect went down: used https://raw.githubusercontent.com/AbdelouahabKhelifati/EPredictor/88a08a9d4d109f4f73d5aaee35896b5032b000df/etc/facebook-wosn-wall/out.facebook-wosn-wall
+filename = '/Users/sha0639/Downloads/out.facebook-wosn-wall.txt';   % Konect went down: used https://raw.githubusercontent.com/AbdelouahabKhelifati/EPredictor/88a08a9d4d109f4f73d5aaee35896b5032b000df/etc/facebook-wosn-wall/out.facebook-wosn-wall
 
 %% Get temporal network in memory
 if strcmp(filename,'/Users/sha0639/Downloads/out.facebook-wosn-wall.txt')
@@ -37,25 +37,25 @@ time = datetime(tau,'ConvertFrom','epochtime',...
 
 %% Temporal parameters
 if strcmp(filename,'/Users/sha0639/Downloads/sx-mathoverflow-a2q.txt')
-% After varying dt and window there is no evidence of homology in
-% dimension > 1 for any choice of these parameters, so using minimal
-% window in the interest of speed (by way of reproducibility)
-dt = 24/24;
-window = dt;
-T = days(time(end)-time(1));
-t0 = time(1);
+    % After varying dt and window there is no evidence of homology in
+    % dimension > 1 for any choice of these parameters, so using minimal
+    % window in the interest of speed (by way of reproducibility)
+    dt = 24/24;
+    window = dt;
+    T = days(time(end)-time(1));
+    t0 = time(1);
 elseif strcmp(filename,'/Users/sha0639/Downloads/email-Eu-core-temporal.txt')
-dt = 1/24;
-window = 2*dt;
-T = days(time(end)-time(1));
-t0 = time(1);
+    dt = 1/24;
+    window = 2*dt;
+    T = days(time(end)-time(1));
+    t0 = time(1);
 elseif strcmp(filename,'/Users/sha0639/Downloads/out.facebook-wosn-wall.txt')
-dt = 24/24;
-window = 2*dt;
-T = 1000;
-t0 = time(1)+.3;    % for boundaries in daily lulls
+    dt = 24/24;
+    window = 2*dt;
+    T = 1000;
+    t0 = time(1)+.3;    % for boundaries in daily lulls
 else
-error('what file?');
+    error('what file?');
 end
 slide = dt;
 t1 = t0+window;
@@ -64,34 +64,120 @@ t1 = t0+window;
 dim = window/dt+1;
 betti = [];
 caught = [];
+clustCoeff = [];
+edgeDensity = [];
 while t1<time(1)+T
-[t0,t1]
-D = digraph;
-for j = 1:window/dt
-   ind01 = find(isbetween(time,t0+(j-1)*dt,t0+j*dt));
-   for k = 1:numel(ind01)
-       i = ind01(k);
-%             D = addedge(D,[Xsrc{i},'_',num2str(j)],[Xtar{i},'_',num2str(j+1)]);
-       D = addedge(D,['x',num2str(src(i)),'_',num2str(j)],...
-           ['x',num2str(tar(i)),'_',num2str(j+1)]);
-   end
-   D = simplify(D);
+    [t0,t1]
+    D = digraph;
+    for j = 1:window/dt
+        ind01 = find(isbetween(time,t0+(j-1)*dt,t0+j*dt));
+        for k = 1:numel(ind01)
+            i = ind01(k);
+            %             D = addedge(D,[Xsrc{i},'_',num2str(j)],[Xtar{i},'_',num2str(j+1)]);
+            D = addedge(D,['x',num2str(src(i)),'_',num2str(j)],...
+                ['x',num2str(tar(i)),'_',num2str(j+1)]);
+        end
+        D = simplify(D);
+        %
+        foo = localClustCoeff(adjacency(D));
+        foo(isnan(foo)) = 0;
+        clustCoeff = [clustCoeff;mean(foo)];
+        edgeDensity = [edgeDensity;numedges(D)/(numnodes(D)*(numnodes(D)-1))];
+    end
+    if size(D.Nodes,1)
+        try
+            ph = pathhomology(D,dim);
+            b01 = ph.betti;
+        catch
+            caught = [caught;t0];
+            b01 = nan(1,dim);
+        end
+    else
+        b01 = zeros(1,dim);
+    end
+    b01
+    betti = [betti;b01];
+    t0 = t0+slide;
+    t1 = t0+window;
 end
-if size(D.Nodes,1)
-   try
-       ph = pathhomology(D,dim);
-       b01 = ph.betti;
-   catch
-       caught = [caught;t0];
-       b01 = nan(1,dim);
-   end
+clustCoeff(isnan(clustCoeff)) = 0;
+edgeDensity(isnan(edgeDensity)) = 0;
+
+%% Vs
+if strcmp(filename,'/Users/sha0639/Downloads/sx-mathoverflow-a2q.txt')
+    figure('Position',[0,0,560,210]);
+    subplot(1,2,1);
+    plot(betti(:,2),clustCoeff,'k.');
+    xlabel('$\tilde \beta_1$','Interpreter','latex');
+    ylabel('clustering coefficient','Interpreter','latex');
+    title('MathOverflow layered digraphs','Interpreter','latex');
+    rho = corrcoef(betti(:,2),clustCoeff);
+    legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+        'Interpreter','latex','Location','Northeast');
+    subplot(1,2,2);
+    plot(betti(:,2),edgeDensity,'k.');
+    xlabel('$\tilde \beta_1$','Interpreter','latex');
+    ylabel('edge density','Interpreter','latex');
+    title('MathOverflow layered digraphs','Interpreter','latex');
+    rho = corrcoef(betti(:,2),edgeDensity);
+    legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+        'Interpreter','latex','Location','Northeast');
+%     % Save figure to same directory
+%     filedir = '/Users/sha0639/Downloads/';
+%     timestr = datestr(datetime,'yyyymmdd_HHMM');
+%     filename = ['VsMoMLP',timestr];
+%     print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
+%     print('-dpng',[fileDir,filename,'.png'],'-r600');
+elseif strcmp(filename,'/Users/sha0639/Downloads/email-Eu-core-temporal.txt')
+    figure('Position',[0,0,560,210]);
+    subplot(1,2,1);
+    plot(betti(:,2),edgeDensity(1:2:end),'k.');
+    xlabel('$\tilde \beta_1$','Interpreter','latex');
+    ylabel('clustering coefficient','Interpreter','latex');
+    title('European email layered digraphs','Interpreter','latex');
+    rho = corrcoef(betti(:,2),edgeDensity(1:2:end));
+    legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+        'Interpreter','latex','Location','Northeast');
+    subplot(1,2,2);
+    plot(betti(:,3),edgeDensity(1:2:end),'k.');
+    xlabel('$\tilde \beta_2$','Interpreter','latex');
+    ylabel('edge density','Interpreter','latex');
+    title('European email layered digraphs','Interpreter','latex');
+    rho = corrcoef(betti(:,3),edgeDensity(1:2:end));
+    legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+        'Interpreter','latex','Location','Northeast');
+%     % Save figure to same directory
+%     filedir = '/Users/sha0639/Downloads/';
+%     timestr = datestr(datetime,'yyyymmdd_HHMM');
+%     filename = ['VsEmailMLP',timestr];
+%     print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
+%     print('-dpng',[fileDir,filename,'.png'],'-r600');
+elseif strcmp(filename,'/Users/sha0639/Downloads/out.facebook-wosn-wall.txt')
+    figure('Position',[0,0,560,210]);
+    subplot(1,2,1);
+    plot(betti(:,2),edgeDensity(1:2:end),'k.');
+    xlabel('$\tilde \beta_1$','Interpreter','latex');
+    ylabel('clustering coefficient','Interpreter','latex');
+    title('Facebook layered digraphs','Interpreter','latex');
+    rho = corrcoef(betti(:,2),edgeDensity(1:2:end));
+    legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+        'Interpreter','latex','Location','Northeast');
+    subplot(1,2,2);
+    plot(betti(:,3),edgeDensity(1:2:end),'k.');
+    xlabel('$\tilde \beta_2$','Interpreter','latex');
+    ylabel('edge density','Interpreter','latex');
+    title('Facebook layered digraphs','Interpreter','latex');
+    rho = corrcoef(betti(:,3),edgeDensity(1:2:end));
+    legend(['$\rho = ',num2str(rho(1,2)),'$'],...
+        'Interpreter','latex','Location','Northeast');
+%     % Save figure to same directory
+%     filedir = '/Users/sha0639/Downloads/';
+%     timestr = datestr(datetime,'yyyymmdd_HHMM');
+%     filename = ['VsEmailMLP',timestr];
+%     print('-dpdf',[fileDir,filename,'.pdf'],'-r600');
+%     print('-dpng',[fileDir,filename,'.png'],'-r600');
 else
-   b01 = zeros(1,dim);
-end
-b01
-betti = [betti;b01];
-t0 = t0+slide;
-t1 = t0+window;
+    error('what file?');
 end
 
 %% Just for saving stuff
